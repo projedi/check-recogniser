@@ -12,6 +12,29 @@
 
 #include "recognizer.h"
 
+class ExtTreeView : public QTreeView {
+    Q_OBJECT
+
+public:
+    ExtTreeView(QWidget *parent = 0);
+
+protected:
+    void contextMenuEvent(QContextMenuEvent *event);
+
+private:
+    QAction *actDeleteCheque, *actNewCheque;
+    QMenu *cMenu;
+    QModelIndex cInx;
+
+private slots:
+    void slotDeleteChequeRequested();
+    void slotLoadChequeRequested();
+
+signals:
+    void deleteChequeRequested(int row);
+    void loadChequeRequested();
+};
+
 class MainWindow : public QMainWindow {
     Q_OBJECT
     
@@ -26,7 +49,7 @@ public:
 
 private:
     QAction *actLoadCheque, *actShowStats;
-    QTreeView *tvDBView;
+    ExtTreeView *tvDBView;
     QStandardItemModel *dbViewModel;
     QLabel *lbInfo;
     QComboBox *cbPeriod;
@@ -43,6 +66,7 @@ private:
 
 private slots:
     void loadCheque();
+    void deleteCheque(int pos);
     void showStats();
     void showCheques(int type);
 };

@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>ru_RU.qm</file>
+    </qresource>
+</RCC>

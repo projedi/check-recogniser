@@ -8,15 +8,26 @@
 //#include "tesseract/baseapi.h"
 //#include "leptonica/allheaders.h"
 
+#define F_NAME      0
+#define F_COST      1
+#define F_COUNT     2
+#define F_CATEGORY  3
+
+#define FV_GOOD     0
+#define FV_UNSURE   1
+#define FV_BAD      2
+
 struct Good {
     Good(const QString &_name = "", double _cost = 0.0, double _count = 1, const QString &_category = "")
-        : name(_name), cost(_cost), count(_count), category(_category) {}
+        : name(_name), cost(_cost), count(_count), category(_category) {
+        for(int i=0; i<4; i++) flags[i] = FV_GOOD;
+    }
 
     QString name;
     double cost;
     double count;
     QString category;
-    char flags[4];
+    int flags[4];
 };
 
 struct Cheque {

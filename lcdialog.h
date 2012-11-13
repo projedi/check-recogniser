@@ -31,6 +31,16 @@ private:
     QMap<int, QString> cbData;
 };
 
+class DoubleSpinDelegate : public QItemDelegate {
+public:
+    DoubleSpinDelegate(QObject *parent = 0);
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+    void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+};
+
+
 //-----------------------------------------------------------------
 
 class ExtTableView : public QTableView {
@@ -39,16 +49,27 @@ class ExtTableView : public QTableView {
 public:
     ExtTableView(QWidget *parent = 0);
 
+    void setItemDelegateForColumn(int column, QAbstractItemDelegate *delegate);
+
 protected:
     void keyReleaseEvent(QKeyEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event);
+
+private:
+    bool blockChanges;
 
 private slots:
-    void checkForNewRow();
+    void checkForNewRow(QWidget *w);
+
+signals:
+    void updateTotal();
 };
 
 //-----------------------------------------------------------------
 
 class LCDialog : public QDialog {
+    Q_OBJECT
+
 public:
     LCDialog(const QString &chequePath, MainWindow *parent);
 
@@ -63,7 +84,12 @@ private:
     QDateTimeEdit *dteEditor;
     QLineEdit *leSum;
 
+    double getCost(int pos) const;
     void requestRecognition(const QString &filePath);
+    void setColor(QModelIndex pos, int val);
+
+private slots:
+    void updateTotal();
 };
 
 #endif // LCDIALOG_H

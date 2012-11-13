@@ -6,6 +6,7 @@
 #include <QGridLayout>
 #include <QFont>
 #include <QtSql>
+#include <QMessageBox>
 
 #include "lcdialog.h"
 
@@ -18,8 +19,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     dbViewModel->setHeaderData(1, Qt::Horizontal, tr("Cost"), Qt::DisplayRole);
     dbViewModel->setHeaderData(2, Qt::Horizontal, tr("Quantity"), Qt::DisplayRole);
 
-    tvDBView = new QTreeView(this);
+    tvDBView = new ExtTreeView(this);
     tvDBView->setModel(dbViewModel);
+    connect(tvDBView, SIGNAL(loadChequeRequested()), this, SLOT(loadCheque()));
+    connect(tvDBView, SIGNAL(deleteChequeRequested(int)), this, SLOT(deleteCheque(int)));
+
     lbInfo = new QLabel("<b>0</b>", this);
 
     cRecognizer = new ChequeRecognizer(this);
@@ -72,7 +76,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     if(!cdb.open()) qDebug() << "Unable to open database";
     if(needCreation && cdb.isOpen()) {
         QSqlQuery q(cdb);
-        if(!q.exec(QString("CREATE TABLE cheques (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATETIME, total DOUBLE);"))) qDebug() << q.lastError();
+        if(!q.exec(QString("CREATE TABLE cheques (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATETIME, total DOUBLE) ON DELETE CASCADE;"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE category (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE goods (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, cost DOUBLE, category_id INTEGER, FOREIGN KEY(category_id) REFERENCES category(id));"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE goods_in_cheque (cid INTEGER, gid INTEGER, count INTEGER, PRIMARY KEY(cid, gid), FOREIGN KEY(cid) REFERENCES cheques(id), FOREIGN KEY(gid) REFERENCES goods(id));"))) qDebug() << q.lastError();
@@ -109,7 +113,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 }
 
 MainWindow::~MainWindow() {
-    
+    cdb.close();
 }
 
 //-----------------------------------------------------------------
@@ -158,6 +162,7 @@ void MainWindow::showCheques(int type) {
         QString bdate = QDateTime::fromMSecsSinceEpoch(q.value(1).toLongLong()).toString("dd.MM.yyyy hh:mm");
         QString tcost = QString::number(q.value(2).toDouble());
         dbViewModel->insertRows(pos, 1);
+        dbViewModel->setData(dbViewModel->index(pos, 0), q.value(0), Qt::UserRole);
         dbViewModel->setData(dbViewModel->index(pos, 0), tr("Date: %1").arg(bdate), Qt::DisplayRole);
         dbViewModel->setData(dbViewModel->index(pos, 1), tr("Total cost: %1").arg(tcost), Qt::DisplayRole);
 //        dbViewModel->setData(dbViewModel->index(pos, 0), bf, Qt::FontRole);
@@ -186,7 +191,7 @@ void MainWindow::showCheques(int type) {
 //-----------------------------------------------------------------
 
 void MainWindow::loadCheque() {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Load new cheque"), ".", "Images (*.png *.jpg *.jpeg *.tiff)");
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Load new cheque"), ".", "Images (*.png *.jpg *.jpeg *.tif *.tiff)");
     if(fileName.isEmpty()) return;
     LCDialog *lcDialog = new LCDialog(fileName, this);
     if(lcDialog->exec() == QDialog::Accepted) {
@@ -239,6 +244,16 @@ void MainWindow::showStats() {
 
 //-----------------------------------------------------------------
 
+void MainWindow::deleteCheque(int pos) {
+    QString chId = dbViewModel->data(dbViewModel->index(pos, 0), Qt::UserRole).toString();
+
+    QSqlQuery q(cdb);
+    q.exec(QString("DELETE FROM cheques WHERE id=%1;").arg(chId));
+    dbViewModel->removeRow(pos);
+}
+
+//-----------------------------------------------------------------
+
 int MainWindow::getCategoryIDForGood(const QString &goodName) {
     QSqlQuery q(cdb);
     if(!q.exec(QString("SELECT category_id FROM goods WHERE name=\"%1\";").arg(goodName))) qDebug() << q.lastError();
@@ -254,4 +269,34 @@ QMap<int, QString> &MainWindow::getCategoryNames() {
 
 ChequeRecognizer *MainWindow::getRecognizer() {
     return cRecognizer;
+}
+
+/*******************************************************************/
+
+ExtTreeView::ExtTreeView(QWidget *parent) : QTreeView(parent) {
+    actDeleteCheque = new QAction(tr("Delete cheque"), this);
+    actNewCheque = new QAction(tr("Load cheque"), this);
+    connect(actDeleteCheque, SIGNAL(triggered()), this, SLOT(slotDeleteChequeRequested()));
+    connect(actNewCheque, SIGNAL(triggered()), this, SLOT(slotLoadChequeRequested()));
+
+    cMenu = new QMenu(this);
+    cMenu->addAction(actNewCheque);
+    cMenu->addAction(actDeleteCheque);
+}
+
+void ExtTreeView::contextMenuEvent(QContextMenuEvent *event) {
+    cInx = this->indexAt(event->pos());
+    if(cInx.parent().isValid()) cInx = cInx.parent();
+    if(cInx.isValid()) actDeleteCheque->setEnabled(true);
+    cMenu->exec(event->globalPos());
+}
+
+void ExtTreeView::slotLoadChequeRequested() {
+    emit loadChequeRequested();
+}
+
+void ExtTreeView::slotDeleteChequeRequested() {
+    QString date = cInx.model()->data(cInx.model()->index(cInx.row(), 0)).toString();
+    int res = QMessageBox::question(this, tr("Cheque deletion"), tr("Do you really want to delete cheque %1?").arg(date.right(date.size()-6)), QMessageBox::Yes, QMessageBox::No);
+    if(res == QMessageBox::Yes) emit deleteChequeRequested(cInx.row());
 }

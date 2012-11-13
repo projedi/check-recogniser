@@ -22,3 +22,8 @@ HEADERS  += mainwindow.h \
     recognizer.h
 
 LIBS += -llept -ltesseract
+
+TRANSLATIONS += trans.ts
+
+RESOURCES += \
+    resources.qrc
