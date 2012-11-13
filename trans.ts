@@ -4,22 +4,22 @@
 <context>
     <name>ExtTreeView</name>
     <message>
-        <location filename="mainwindow.cpp" line="286"/>
+        <location filename="mainwindow.cpp" line="269"/>
         <source>Delete cheque</source>
         <translation>Удалить чек</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="287"/>
+        <location filename="mainwindow.cpp" line="270"/>
         <source>Load cheque</source>
         <translation>Добавить чек</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="309"/>
+        <location filename="mainwindow.cpp" line="292"/>
         <source>Cheque deletion</source>
         <translation>Удаление чека</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="309"/>
+        <location filename="mainwindow.cpp" line="292"/>
         <source>Do you really want to delete cheque %1?</source>
         <translation>Вы действительно хотите удалить чек за %1?</translation>
     </message>
@@ -90,13 +90,17 @@ unavailable</source>
         <translation>Цена</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="21"/>
         <source>Quantity</source>
-        <translation>Количество</translation>
+        <translation type="obsolete">Количество</translation>
+    </message>
+    <message>
+        <location filename="mainwindow.cpp" line="21"/>
+        <source>Category</source>
+        <translation>Категория</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="32"/>
-        <location filename="mainwindow.cpp" line="124"/>
+        <location filename="mainwindow.cpp" line="106"/>
         <source>Load cheque</source>
         <translation>Добавить чек</translation>
     </message>
@@ -141,22 +145,22 @@ unavailable</source>
         <translation>Cheque recognizer</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="127"/>
+        <location filename="mainwindow.cpp" line="109"/>
         <source>Statistics</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="167"/>
+        <location filename="mainwindow.cpp" line="149"/>
         <source>Date: %1</source>
         <translation>Дата: %1</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="168"/>
+        <location filename="mainwindow.cpp" line="150"/>
         <source>Total cost: %1</source>
         <translation>Общая стоимость: %1</translation>
     </message>
     <message>
-        <location filename="mainwindow.cpp" line="196"/>
+        <location filename="mainwindow.cpp" line="179"/>
         <source>Load new cheque</source>
         <translation>Выбор чека</translation>
     </message>

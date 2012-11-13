@@ -10,7 +10,10 @@
 
 #include "mainwindow.h"
 #include "previewer.h"
-#include "recognizer.h"
+
+#ifdef __WIN32
+#include "recognizer_win.h"
+#endif
 
 //-----------------------------------------------------------------
 

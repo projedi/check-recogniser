@@ -167,6 +167,7 @@ void ExtTableView::keyReleaseEvent(QKeyEvent *event) {
             if(rlist.last() == tableModel->rowCount()-1 && tableModel->rowCount() > 1) rlist.removeLast();
             for(int i=rlist.size()-1; i>=0; i--) tableModel->removeRow(rlist[i]);
             if(tableModel->rowCount() == 0) tableModel->setRowCount(1);
+            emit updateTotal();
         }
     }
     QTableView::keyReleaseEvent(event);
@@ -227,6 +228,7 @@ void ComboBoxDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, 
     QVariant dt = cb->currentText();
     model->setData(index, id, Qt::UserRole);
     model->setData(index, dt, Qt::DisplayRole);
+    model->setData(index, Qt::white, Qt::BackgroundRole);
 }
 
 void ComboBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const {
@@ -261,6 +263,7 @@ void DoubleSpinDelegate::setEditorData(QWidget *editor, const QModelIndex &index
 void DoubleSpinDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
     QDoubleSpinBox *sb = static_cast<QDoubleSpinBox*>(editor);
     model->setData(index, QString("%1 p.").arg(sb->value()), Qt::DisplayRole);
+    model->setData(index, Qt::white, Qt::BackgroundRole);
 }
 
 void DoubleSpinDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const {

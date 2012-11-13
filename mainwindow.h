@@ -10,7 +10,9 @@
 #include <QMap>
 #include <QComboBox>
 
-#include "recognizer.h"
+#ifdef __WIN32
+#include "recognizer_win.h"
+#endif
 
 class ExtTreeView : public QTreeView {
     Q_OBJECT
