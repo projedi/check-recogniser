@@ -14,14 +14,19 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     previewer.cpp \
     lcdialog.cpp \
-    recognizer.cpp
+    recognizer.cpp \
+    statrender.cpp \
+    statwindow.cpp
 
 HEADERS  += mainwindow.h \
     lcdialog.h \
     previewer.h \
-    recognizer.h
+    recognizer.h \
+    statrender.h \
+    statwindow.h
 
-LIBS += -llept -ltesseract
+INCLUDEPATH += C:/libs/qwt-6.0.1/include
+LIBS += -lqwtd -llept -ltesseract
 
 TRANSLATIONS += trans.ts
 

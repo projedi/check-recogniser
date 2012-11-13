@@ -42,6 +42,7 @@ public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    QSqlDatabase &getDatabase();
     QMap<int, QString> &getCategoryNames();
     ChequeRecognizer *getRecognizer();
 

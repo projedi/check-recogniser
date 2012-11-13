@@ -144,7 +144,7 @@ void LCDialog::updateTotal() {
 /*************************************************************************/
 
 ExtTableView::ExtTableView(QWidget *parent) : QTableView(parent), blockChanges(false) {
-    connect(itemDelegate(), SIGNAL(closeEditor(QWidget*)), this, SLOT(checkForNewRow(Widget*)));
+    connect(itemDelegate(), SIGNAL(closeEditor(QWidget*)), this, SLOT(checkForNewRow(QWidget*)));
 }
 
 void ExtTableView::setItemDelegateForColumn(int column, QAbstractItemDelegate *delegate) {

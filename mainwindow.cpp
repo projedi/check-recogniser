@@ -8,6 +8,7 @@
 #include <QtSql>
 #include <QMessageBox>
 
+#include "statwindow.h"
 #include "lcdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
@@ -76,13 +77,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     if(!cdb.open()) qDebug() << "Unable to open database";
     if(needCreation && cdb.isOpen()) {
         QSqlQuery q(cdb);
-        if(!q.exec(QString("CREATE TABLE cheques (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATETIME, total DOUBLE) ON DELETE CASCADE;"))) qDebug() << q.lastError();
+        if(!q.exec(QString("CREATE TABLE cheques (id INTEGER PRIMARY KEY AUTOINCREMENT, date DATETIME, total DOUBLE);"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE category (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE goods (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, cost DOUBLE, category_id INTEGER, FOREIGN KEY(category_id) REFERENCES category(id));"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE goods_in_cheque (cid INTEGER, gid INTEGER, count INTEGER, PRIMARY KEY(cid, gid), FOREIGN KEY(cid) REFERENCES cheques(id), FOREIGN KEY(gid) REFERENCES goods(id));"))) qDebug() << q.lastError();
-        if(!q.exec(QString("INSERT INTO category (name) VALUES (\"food\");"))) qDebug() << q.lastError();
-        if(!q.exec(QString("INSERT INTO category (name) VALUES (\"household chemistry\");"))) qDebug() << q.lastError();
-        if(!q.exec(QString("INSERT INTO goods (name, cost, category_id) VALUES (\"milk\", 40.00, 1);"))) qDebug() << q.lastError();
+        //if(!q.exec(QString("INSERT INTO category (name) VALUES (\"food\");"))) qDebug() << q.lastError();
+        //if(!q.exec(QString("INSERT INTO category (name) VALUES (\"household chemistry\");"))) qDebug() << q.lastError();
+        //if(!q.exec(QString("INSERT INTO goods (name, cost, category_id) VALUES (\"milk\", 40.00, 1);"))) qDebug() << q.lastError();
     } else if(cdb.isOpen()) {
         //load some records;
         QSqlQuery q(cdb);
@@ -148,7 +149,7 @@ void MainWindow::showCheques(int type) {
         case 2: t.setDate(QDate::currentDate().addYears(-1)); break;
         default: break;
     }
-    qint64 date = type == 3 ? 0 : t.toMSecsSinceEpoch();
+    qint64 date = type == 3 ? 0 : t.toTime_t();
 
     QSqlQuery q(cdb);
     if(!q.exec(QString("SELECT * FROM cheques WHERE date>%1").arg(date))) qDebug() << q.lastError();
@@ -159,7 +160,7 @@ void MainWindow::showCheques(int type) {
 //    bf.setBold(true);
 
     while(q.next()) {
-        QString bdate = QDateTime::fromMSecsSinceEpoch(q.value(1).toLongLong()).toString("dd.MM.yyyy hh:mm");
+        QString bdate = QDateTime::fromTime_t(q.value(1).toUInt()).toString("dd.MM.yyyy hh:mm");
         QString tcost = QString::number(q.value(2).toDouble());
         dbViewModel->insertRows(pos, 1);
         dbViewModel->setData(dbViewModel->index(pos, 0), q.value(0), Qt::UserRole);
@@ -186,6 +187,7 @@ void MainWindow::showCheques(int type) {
 
     tvDBView->resizeColumnToContents(0);
     tvDBView->resizeColumnToContents(1);
+    tvDBView->setColumnWidth(0, tvDBView->columnWidth(0)+15);
 }
 
 //-----------------------------------------------------------------
@@ -202,7 +204,7 @@ void MainWindow::loadCheque() {
         }
 
         QSqlQuery q(cdb);
-        if(!q.exec(QString("INSERT INTO cheques (date, total) VALUES(%1, %2);").arg(ch.date.toMSecsSinceEpoch()).arg(ch.total))) qDebug() << q.lastError();
+        if(!q.exec(QString("INSERT INTO cheques (date, total) VALUES(%1, %2);").arg(ch.date.toTime_t()).arg(ch.total))) qDebug() << q.lastError();
         if(!q.exec("SELECT last_insert_rowid();")) qDebug() << q.lastError();
         q.next();
         int chId = q.value(0).toInt();
@@ -239,7 +241,9 @@ void MainWindow::loadCheque() {
 }
 
 void MainWindow::showStats() {
-
+    StatWindow *sw = new StatWindow(this);
+    sw->exec();
+    sw->deleteLater();
 }
 
 //-----------------------------------------------------------------
@@ -249,6 +253,7 @@ void MainWindow::deleteCheque(int pos) {
 
     QSqlQuery q(cdb);
     q.exec(QString("DELETE FROM cheques WHERE id=%1;").arg(chId));
+    if(!q.exec(QString("DELETE FROM goods_in_cheque WHERE cid=%1;").arg(chId))) qDebug() << q.lastError();
     dbViewModel->removeRow(pos);
 }
 
@@ -262,6 +267,10 @@ int MainWindow::getCategoryIDForGood(const QString &goodName) {
 }
 
 //-----------------------------------------------------------------
+
+QSqlDatabase &MainWindow::getDatabase() {
+    return cdb;
+}
 
 QMap<int, QString> &MainWindow::getCategoryNames() {
     return categoryNames;
