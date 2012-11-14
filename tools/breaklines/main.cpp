@@ -35,8 +35,9 @@ void cropCheck(Mat& src) {
    getRectSubPix(rotated, box.size, box.center, src);
 }
 
+bool rectSort(Rect r1, Rect r2) { return (r1.y < r2.y); }
+
 void sortAndMergeRects(vector<Rect>& rects) {
-   //TODO: sort by line number
    for(int i = 0; i != rects.size(); i++) {
       Rect& r1 = rects[i];
       if(r1.width == 0 && r1.height == 0) continue;
@@ -45,7 +46,8 @@ void sortAndMergeRects(vector<Rect>& rects) {
          if(r2.width == 0 && r2.height == 0) continue;
          int xdiff = (r1.x + r1.width/2) - (r2.x + r2.width/2);
          int ydiff = (r1.y + r1.height/2) - (r2.y + r2.height/2);
-         if(ydiff <= 15) {
+         //TODO: Use more intelligent way
+         if(ydiff <= 30 || (r1 & r2) == r2 || (r1 & r2) == r1) {
             //if(  r1.contains(Point(r2.x+r2.width/2,r2.y+r2.height/2))
             //  || r2.contains(Point(r1.x+r1.width/2,r1.y+r1.height/2))) {
                r1 |= r2;
@@ -58,6 +60,7 @@ void sortAndMergeRects(vector<Rect>& rects) {
             }
       }
    }
+   sort(rects.begin(), rects.end(), rectSort);
 }
 
 void retrieveBoundingBoxes(Mat& src) {
@@ -76,16 +79,23 @@ void retrieveBoundingBoxes(Mat& src) {
    vector<Rect> rects;
    vector< vector<Point> > squares;
    for(int i = 0; i != contours.size(); i++) {
-      Point2f center;
-      float radius;
-      minEnclosingCircle(contours[i], center, radius);
-      if(radius < 5 || radius > 60) continue;
+      //Point2f center;
+      //float radius;
+      //minEnclosingCircle(contours[i], center, radius);
+      Rect box = minAreaRect(Mat(contours[i])).boundingRect();
+      if(box.width < 5 || box.height < 5 || box.height > 60) continue;
+      int dx = (int)(box.width / 10);
+      float dy = (int)(box.height / 10);
+      box.width += 2*dx;
+      box.height += 2*dy;
+      box.x -= dx;
+      box.y -= dy;
       //Mat mat;
       //getRectSubPix(src, Size(2*radius, 2*radius), center, mat);
       //imshow("Letters", mat);
       //waitKey(0);
-      Rect rect((int)(center.x-radius),(int)(center.y-radius),(int)(2*radius),(int)(2*radius));
-      rects.push_back(rect);
+      //Rect rect((int)(center.x-radius),(int)(center.y-radius),(int)(2*radius),(int)(2*radius));
+      rects.push_back(box);
       /*
       vector<Point> points;
       points.push_back(Point((int)(center.x - radius), (int)(center.y - radius)));
@@ -96,12 +106,12 @@ void retrieveBoundingBoxes(Mat& src) {
       */
    }
    cout << rects.size() << endl;
-   //TODO: Somehow there're disjoined rects.
    sortAndMergeRects(rects);
    //groupRectangles(rects, 1, 0.2);
    cout << rects.size() << endl;
    for(int i = 0; i != rects.size(); i++) {
       Rect r = rects[i];
+      cout << r << endl;
       Mat mat;
       getRectSubPix(src, Size(r.width, r.height), Point(r.x+r.width/2, r.y+r.height/2), mat);
       //imshow("Letters", mat);
