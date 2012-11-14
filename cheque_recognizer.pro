@@ -15,17 +15,20 @@ SOURCES += main.cpp\
     previewer.cpp \
     lcdialog.cpp \
     statrender.cpp \
-    statwindow.cpp \
-    recognizer_win.cpp
+    statwindow.cpp
+win: SOURCES += recogniser_win.cpp
+unix: SOURCES += recognizer.cpp
 
 HEADERS  += mainwindow.h \
     lcdialog.h \
     previewer.h \
     statrender.h \
-    statwindow.h \
-    recognizer_win.h
+    statwindow.h
+win: HEADERS += recogniser_win.h
+unix: HEADERS += recognizer.h
 
-INCLUDEPATH += C:/libs/qwt-6.0.1/include \
+win32 {
+   INCLUDEPATH += C:/libs/qwt-6.0.1/include \
                 D:/libs/InsightToolkit-3.20.1/Code/Algorithms \
                 D:/libs/InsightToolkit-3.20.1/Code/BasicFilters \
                 D:/libs/InsightToolkit-3.20.1/Code/Common \
@@ -52,9 +55,13 @@ INCLUDEPATH += C:/libs/qwt-6.0.1/include \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/vxl/vcl \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/vxl/core \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/gdcm
+}
+unix {
+   INCLUDEPATH += /usr/include/qwt
+}
 
-LIBS += -lqwt -llept -ltesseract -lITKCommon -litkvnl -litkvnl_algo -litkvcl -litksys -lITKIO
-
+win32: LIBS += -lqwt -llept -ltesseract -lITKCommon -litkvnl -litkvnl_algo -litkvcl -litksys -lITKIO
+unix: LIBS += -lqwt -llept -ltesseract -lopencv_core -lopencv_imgproc -lopencv_highgui
 TRANSLATIONS += trans.ts
 
 RESOURCES += \

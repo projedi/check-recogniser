@@ -1,115 +1,128 @@
 #include "recognizer.h"
 
-#include <QSettings>
 #include <QtCore/QStringList>
 #include <QtCore/QString>
-#include <QtCore/QTextStream>
 #include <QtCore/QRegExp>
-
-#include <QtCore/QTextCodec>
 
 #include <tesseract/baseapi.h>
 #include <leptonica/allheaders.h>
 
-#define SETTING_ORGANIZATION "qt-box-editor"
-#define SETTING_APPLICATION "QT Box Editor"
+#include <opencv2/opencv.hpp>
 
-QString getDataPath() {
-    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
-                       SETTING_ORGANIZATION, SETTING_APPLICATION);
-    QString dataPath;
-    if (settings.contains("Tesseract/DataPath")) {
-      dataPath = settings.value("Tesseract/DataPath").toString();
+using namespace cv;
+
+bool rectSort(Rect r1, Rect r2) { return (r1.y < r2.y); }
+
+void sortAndMergeRects(vector<Rect>& rects) {
+   for(unsigned int i = 0; i != rects.size(); i++) {
+      Rect& r1 = rects[i];
+      if(r1.width == 0 && r1.height == 0) continue;
+      for(unsigned int j = i+1; j != rects.size(); j++) {
+         Rect& r2 = rects[j];
+         if(r2.width == 0 && r2.height == 0) continue;
+         int diff = (r1.y - r2.y) + (r1.height - r2.height)/2;
+         if(diff <= 30 || (r1 & r2) == r2 || (r1 & r2) == r1) {
+            r1 |= r2;
+            rects.erase(rects.begin()+j);
+            j--;
+         }
+      }
+   }
+   sort(rects.begin(), rects.end(), rectSort);
+}
+
+vector<Rect> retrieveBoundingBoxes(Mat& src) {
+   Mat img = src.clone();
+   cvtColor(src,src,CV_GRAY2BGR);
+   bitwise_not(img, img);
+   threshold(img, img, 120, 255, THRESH_TOZERO);
+   Mat element = getStructuringElement(MORPH_RECT, Size(5,3));
+   dilate(img, img, element);
+   erode(img, img, element);
+   vector< vector<Point> > contours;
+   Mat hierarchy;
+   findContours(img, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+   vector<Rect> rects;
+   vector< vector<Point> > squares;
+   for(unsigned int i = 0; i != contours.size(); i++) {
+      Rect box = minAreaRect(Mat(contours[i])).boundingRect();
+      if(box.width < 5 || box.height < 5 || box.height > 60) continue;
+      int dx = (int)(box.width / 10);
+      float dy = (int)(box.height / 10);
+      box.width += 2*dx;
+      box.height += 2*dy;
+      box.x -= dx;
+      box.y -= dy;
+      rects.push_back(box);
+   }
+   sortAndMergeRects(rects);
+   return rects;
+}
+
+QStringList recogniseLineByLine(QString fileName, std::string lang) {
+    tesseract::TessBaseAPI tessApi;
+    tessApi.Init(NULL, lang.c_str());
+    Mat src = imread(fileName.toStdString(), 0);
+    vector<Rect> rects = retrieveBoundingBoxes(src);
+    QStringList res;
+    for(vector<Rect>::iterator it = rects.begin(); it != rects.end(); it++) {
+       int w = (*it).width;
+       int h = (*it).height;
+       int cx = (*it).x + (*it).width / 2;
+       int cy = (*it).y + (*it).height / 2;
+       Mat mat;
+       getRectSubPix(src, Size(w,h), Point(cx,cy), mat);
+       tessApi.SetImage((uchar*)mat.data,mat.cols,mat.rows,mat.channels(),mat.step1());
+       char *text = tessApi.GetUTF8Text();
+       QString txt = QString::fromUtf8(text);
+       QStringList str;
+       str = txt.split("\n");
+       res += str;
     }
-    return dataPath;
+    return res;
 }
 
-ChequeRecognizer::ChequeRecognizer(QObject *parent) : QObject(parent) {
-}
+ChequeRecognizer::ChequeRecognizer(QObject *parent) : QObject(parent) { }
 
 Cheque ChequeRecognizer::recognizeFile(const QString &fileName) {
     Cheque ch;
+    setenv("TESSDATA_PREFIX", ".", 1);
 
-    tesseract::TessBaseAPI tessApi;
+    QStringList str = recogniseLineByLine(fileName,"eng");
+    QStringList strNames = recogniseLineByLine(fileName,"rus");
 
-     #ifdef _WIN32
-     QString envQString = "TESSDATA_PREFIX=" + getDataPath() ;
-     QByteArray byteArrayWin = envQString.toUtf8();
-     const char * env = byteArrayWin.data();
-     putenv(env);
-     #else
-     QByteArray byteArray1 = getDataPath().toUtf8();
-     const char * datapath = byteArray1.data();
-     setenv("TESSDATA_PREFIX", datapath, 1);
-     #endif
-
-    tessApi.Init(NULL, "rus");
-    PIX *pix = pixRead(fileName.toLocal8Bit());
-    tessApi.SetImage(pix);
-
-    char *text = tessApi.GetUTF8Text();
-
-    QString txt = QString::fromUtf8(text);
-
-    QStringList str;
-    str = txt.split("\n");
-
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("utf-8")); //cyrillic .cpp
     QRegExp rgood("[0-9]+[,.][0-9][0-9].[0-9]+[,.][0-9][0-9]$");
     QRegExp rcost("[0-9]+[,.][0-9][0-9]$");
-    QRegExp rname("[0-9,.]*[хХxX]");
-    QRegExp rcount("[хХxX]");
+    QRegExp rname("[0-9,.]*[xX]");
+    QRegExp rcount("[xX]");
     QRegExp rtotal("ИТОГ");
     QRegExp rtotalc("[0-9]+[,.][0-9][0-9]");
-    QRegExp rdatetime("[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]");
+    QRegExp rdatetime("^#[0-9][0-9][0-9][0-9]");
 
+    double total = 0;
+    
+    for (int i = 0; i != str.count(); ++i) {
+       QString numStr = str[i];
+       QString nameStr = strNames[i];
+        if (numStr.contains(rgood)) {
+            int index2 = numStr.indexOf(rcost);
+            int index3 = numStr.indexOf(rname);
+            int index4 = numStr.indexOf(rcount);
 
-    QTextStream out(stdout);
-
-    int total = 0;
-    for (QStringList::Iterator it = str.begin(); it != str.end(); ++it) {
-        if ((*it).contains(rgood)) {
-            int index1 = (*it).indexOf(rgood);
-            int index2 = (*it).indexOf(rcost);
-            int index3 = (*it).indexOf(rname);
-            int index4 = (*it).indexOf(rcount);
-
-            QString gname = (*it).mid(0,index3);
+            QString gname = nameStr.mid(0,index3);
             gname = gname.replace('"', '\'');
-            double gcost = (*it).mid(index1, index2-index1).replace(',', '.').toDouble();
-            double gcount = (*it).mid(index3, index4-index3).replace(',', '.').toDouble();
-//            out << (*it).mid(0,index1) << endl;
-//            out << (*it).mid(index2, -1) << endl;
-//            out << *it << endl;
-//            out << (*it).mid(index3, index4-index3).replace(',', '.') << endl;
-//            out << gname << endl;
-//            out << gcost << endl;
-//            out << gcount << endl;
+            double gcost = numStr.mid(index2).replace(',', '.').toDouble();
+            double gcount = numStr.mid(index3,index4-index3).replace(',', '.').toDouble();
             ch.goods.append(Good(gname, gcost, gcount));
-            total += gcost*gcount;
+            total += gcost;
         }
-        if ((*it).contains(rtotal)) {
-            rtotalc.indexIn(*it);
-            int index1 = (*it).indexOf(rtotalc);
-            total = (*it).mid(index1, rtotalc.matchedLength()).replace(',', '.').toDouble();
-//            out << (*it).mid(index1, rtotalc.matchedLength()).replace(',', '.') << endl;
-        }
-        if ((*it).contains(rdatetime)) {
-            rdatetime.indexIn(*it);
-            int index1 = (*it).indexOf(rdatetime);
-            QString datetime = (*it).mid(index1, rdatetime.matchedLength());
-            ch.date = QDateTime::fromString(datetime, "dd-MM-yy hh:mm");
+        if (numStr.contains(rdatetime)) {
+            numStr = numStr.replace(QRegExp("[^0-9]"), " ").replace("  ", " ");
+            QString datetime = (numStr).right(14);
+            datetime[datetime.count()-3] = ' ';
+            ch.date = QDateTime::fromString(datetime, "dd MM yy hh mm");
         }
     }
     ch.total = total;
-
-//    ch.date = QDateTime::fromString("13-11-12 19:26", "dd-MM-yy hh:mm");
-
-    pixDestroy(&pix);
-    delete [] text;
-
-//    ch.date = QDateTime::currentDateTime();
-//    ch.total = 40.0;
-//    ch.goods.append(Good("milk", 40.0, 1));
     return ch;
 }
