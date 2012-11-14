@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     dbViewModel = new QStandardItemModel(1, 3, this);
     dbViewModel->setHeaderData(0, Qt::Horizontal, tr("Good"), Qt::DisplayRole);
     dbViewModel->setHeaderData(1, Qt::Horizontal, tr("Cost"), Qt::DisplayRole);
-    dbViewModel->setHeaderData(2, Qt::Horizontal, tr("Quantity"), Qt::DisplayRole);
+    dbViewModel->setHeaderData(2, Qt::Horizontal, tr("Category"), Qt::DisplayRole);
 
     tvDBView = new ExtTreeView(this);
     tvDBView->setModel(dbViewModel);
@@ -93,24 +93,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
 
     updateChequesRowCount();
     showCheques(cbPeriod->currentIndex());
-
-    /*
-    tesseract::TessBaseAPI tessApi;
-    tessApi.Init("C:/tessdata", "rus");
-    qDebug() << tessApi.GetInitLanguagesAsString();
-
-    QString fn = QFileDialog::getOpenFileName(this, "Open", "C:/work");
-    PIX *pix = pixRead(fn.toLocal8Bit().data());
-    if(pix == 0) return;
-    tessApi.SetImage(pix);
-    char *text = tessApi.GetUTF8Text();
-
-    FILE *outF = fopen("C:/work/res.txt", "w");
-    fprintf(outF, "%s", text);
-    fclose(outF);
-
-    pixDestroy(&pix);
-    */
 }
 
 MainWindow::~MainWindow() {
@@ -171,7 +153,8 @@ void MainWindow::showCheques(int type) {
 
         QSqlQuery cq(cdb);
         //if(!cq.exec(QString("SELECT goods.name, goods.cost, content.count FROM goods INNER JOIN (SELECT * FROM goods_in_cheque WHERE cid=%1) AS content ON goods.id=content.gid;").arg(q.value(0).toInt()))) qDebug() << q.lastError();
-        if(!cq.exec(QString("SELECT goods.name, goods.cost, goods_in_cheque.count FROM goods INNER JOIN goods_in_cheque ON goods.id=goods_in_cheque.gid WHERE goods_in_cheque.cid=%1;").arg(q.value(0).toInt()))) qDebug() << q.lastError();
+        //if(!cq.exec(QString("SELECT goods.name, goods.cost, goods_in_cheque.count FROM goods INNER JOIN goods_in_cheque ON goods.id=goods_in_cheque.gid WHERE goods_in_cheque.cid=%1;").arg(q.value(0).toInt()))) qDebug() << q.lastError();
+        if(!cq.exec(QString("SELECT goods.name, goods.cost, goods.category_id FROM goods INNER JOIN goods_in_cheque ON goods.id=goods_in_cheque.gid WHERE goods_in_cheque.cid=%1;").arg(q.value(0).toInt()))) qDebug() << q.lastError();
         QModelIndex index = dbViewModel->index(pos, 0);
         int ipos = 0;
         dbViewModel->insertColumns(0, 3, index);
@@ -179,7 +162,7 @@ void MainWindow::showCheques(int type) {
             bool res = dbViewModel->insertRows(ipos, 1, index);
             res = dbViewModel->setData(dbViewModel->index(ipos, 0, index), cq.value(0).toString(), Qt::DisplayRole);
             res = dbViewModel->setData(dbViewModel->index(ipos, 1, index), cq.value(1).toDouble(), Qt::DisplayRole);
-            res = dbViewModel->setData(dbViewModel->index(ipos, 2, index), cq.value(2).toDouble(), Qt::DisplayRole);
+            res = dbViewModel->setData(dbViewModel->index(ipos, 2, index), categoryNames.value(cq.value(2).toInt()), Qt::DisplayRole);
             ipos++;
         }
         pos++;

@@ -10,7 +10,8 @@
 
 #include "mainwindow.h"
 #include "previewer.h"
-#include "recognizer.h"
+
+#include "recognizer_win.h"
 
 //-----------------------------------------------------------------
 

@@ -17,6 +17,7 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent *event);
+//    void mousePressEvent(QMouseEvent *event);
 
 private:
     QGraphicsTextItem *gtiNoPreview;

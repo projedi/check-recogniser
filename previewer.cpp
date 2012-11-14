@@ -2,6 +2,7 @@
 
 #include <QTextBlockFormat>
 #include <QTextCursor>
+#include <QDebug>
 
 ImagePreviewer::ImagePreviewer(QWidget *parent) : QGraphicsView(parent) {
     this->setScene(new QGraphicsScene(0, 0, 200, this->height(), this));
@@ -50,6 +51,14 @@ void ImagePreviewer::resizeEvent(QResizeEvent *event) {
     if(gpiImage) adjustImage();
     QGraphicsView::resizeEvent(event);
 }
+
+//void ImagePreviewer::mousePressEvent(QMouseEvent *event) {
+//    QGraphicsItem *item = this->scene()->itemAt(event->posF());
+//    QGraphicsPixmapItem *pitem = qgraphicsitem_cast<QGraphicsPixmapItem*>(item);
+//    if(pitem) {
+//        qDebug() << pitem->mapFromScene(event->posF());
+//    }
+//}
 
 void ImagePreviewer::adjustImage() {
     qreal sx = gpiImage->boundingRect().width()/width();

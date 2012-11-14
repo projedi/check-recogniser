@@ -5,9 +5,6 @@
 #include <QDateTime>
 #include <QList>
 
-//#include "tesseract/baseapi.h"
-//#include "leptonica/allheaders.h"
-
 #define F_NAME      0
 #define F_COST      1
 #define F_COUNT     2
@@ -36,11 +33,22 @@ struct Cheque {
     double total;
 };
 
+//----------------------------------------------------------------
+
+#include "tesseract/baseapi.h"
+
 class ChequeRecognizer : public QObject {
 public:
     ChequeRecognizer(QObject *parent = 0);
 
-    Cheque recognizeFile(const QString &fileName);
+    Cheque recognizeFile(const QString &fileName, bool *ok = 0);
+
+private:
+    int prepareData(const QString &fileName);
+    void cleanUp(int fcount);
+    QString recognizeString(const QString &fileName);
+
+    tesseract::TessBaseAPI tessApi;
 };
 
 #endif // RECOGNIZER_H
