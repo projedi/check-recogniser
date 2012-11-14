@@ -81,11 +81,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
         if(!q.exec(QString("CREATE TABLE category (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE goods (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, cost DOUBLE, category_id INTEGER, FOREIGN KEY(category_id) REFERENCES category(id));"))) qDebug() << q.lastError();
         if(!q.exec(QString("CREATE TABLE goods_in_cheque (cid INTEGER, gid INTEGER, count INTEGER, PRIMARY KEY(cid, gid), FOREIGN KEY(cid) REFERENCES cheques(id), FOREIGN KEY(gid) REFERENCES goods(id));"))) qDebug() << q.lastError();
-        //if(!q.exec(QString("INSERT INTO category (name) VALUES (\"food\");"))) qDebug() << q.lastError();
-        //if(!q.exec(QString("INSERT INTO category (name) VALUES (\"household chemistry\");"))) qDebug() << q.lastError();
-        //if(!q.exec(QString("INSERT INTO goods (name, cost, category_id) VALUES (\"milk\", 40.00, 1);"))) qDebug() << q.lastError();
     } else if(cdb.isOpen()) {
-        //load some records;
         QSqlQuery q(cdb);
         if(!q.exec(QString("SELECT * FROM category"))) qDebug() << q.lastError();
         while(q.next()) categoryNames.insert(q.value(0).toInt(), q.value(1).toString());
@@ -111,7 +107,6 @@ void MainWindow::createActions() {
 }
 
 void MainWindow::createMenus() {
-    //QMenu *m = menuBar()->addMenu(tr("Cheque"));
 }
 
 //-----------------------------------------------------------------
@@ -138,8 +133,6 @@ void MainWindow::showCheques(int type) {
     //dbViewModel->clear();
     dbViewModel->setRowCount(0);
     int pos = 0;
-//    QFont bf;
-//    bf.setBold(true);
 
     while(q.next()) {
         QString bdate = QDateTime::fromTime_t(q.value(1).toUInt()).toString("dd.MM.yyyy hh:mm");
@@ -148,8 +141,6 @@ void MainWindow::showCheques(int type) {
         dbViewModel->setData(dbViewModel->index(pos, 0), q.value(0), Qt::UserRole);
         dbViewModel->setData(dbViewModel->index(pos, 0), tr("Date: %1").arg(bdate), Qt::DisplayRole);
         dbViewModel->setData(dbViewModel->index(pos, 1), tr("Total cost: %1").arg(tcost), Qt::DisplayRole);
-//        dbViewModel->setData(dbViewModel->index(pos, 0), bf, Qt::FontRole);
-//        dbViewModel->setData(dbViewModel->index(pos, 1), bf, Qt::FontRole);
 
         QSqlQuery cq(cdb);
         //if(!cq.exec(QString("SELECT goods.name, goods.cost, content.count FROM goods INNER JOIN (SELECT * FROM goods_in_cheque WHERE cid=%1) AS content ON goods.id=content.gid;").arg(q.value(0).toInt()))) qDebug() << q.lastError();

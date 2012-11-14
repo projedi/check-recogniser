@@ -61,13 +61,9 @@ LCDialog::LCDialog(const QString &chequePath, MainWindow *parent) : QDialog(pare
 
     QGridLayout *mlayout = new QGridLayout();
     mlayout->addWidget(splitter, 0, 0, 1, 2);
-    //mlayout->addWidget(ipPreview, 0, 1);
-    //mlayout->addWidget(tvContent, 0, 0);
     mlayout->addLayout(blayout, 1, 0, 1, 2);
     mlayout->setContentsMargins(5, 5, 5, 5);
     mlayout->setSpacing(5);
-    //mlayout->setColumnStretch(0, 3);
-    //mlayout->setColumnStretch(1, 1);
     this->setLayout(mlayout);
     this->setWindowTitle(tr("Adding new cheque"));
     this->resize(700, 450);
@@ -203,8 +199,6 @@ QWidget *ComboBoxDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
     for(QMap<int, QString>::const_iterator i = cbData.constBegin(); i != cbData.constEnd(); ++i) {
         cbEditor->addItem(i.value(), i.key());
     }
-    //cbEditor->installEventFilter(const_cast<ComboBoxDelegate*>(this));
-    //connect(cbEditor, SIGNAL(currentIndexChanged(int)), this, SLOT
     return cbEditor;
 }
 
