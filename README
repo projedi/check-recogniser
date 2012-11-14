@@ -18,42 +18,14 @@
 Windows
 1. Использовать инсталлятор CRSetup.exe
 2. Собрать из исходного кода (для MinGW):
-	2.1) Установить Qt SDK (http://qt-project.org/downloads)
-	2.2) Скачать и собрать Tesseract-OCR (http://code.google.com/p/tesseract-ocr/), Leptonica (http://code.google.com/p/leptonica/) и их зависимости (zlib, libpng, libjpeg, libtiff). Интрукция: http://www.sk-spell.sk.cx/compiling-leptonica-and-tesseract-ocr-with-mingwmsys
-	2.3) Скачать и собрать Insight Toolkit 3.20 ( http://www.itk.org/ITK/resources/software.html)
-	2.4) Скачать и собрать Qwt (http://qwt.sourceforge.net)
-	2.5) Заголовки и библиотеки должны находиться в <MinGW Path>/include, <MinGW Path>/lib and <MinGW Path>/bin. В противном случае необходимо поменять INCLUDEPATH и LIBS в pro-файле.
-		 Для включения Insight Toolkit может помочь следующий набор директорий:
-	INCLUDEPATH +=	<InsightToolkit 3.20 source dir>/Code/Algorithms \
-					<InsightToolkit 3.20 source dir>/Code/BasicFilters \
-					<InsightToolkit 3.20 source dir>/Code/Common \
-					<InsightToolkit 3.20 source dir>/Code/Numerics \
-					<InsightToolkit 3.20 source dir>/Code/IO \
-					<InsightToolkit 3.20 source dir>/Code/Numerics/FEM \
-					<InsightToolkit 3.20 source dir>/Code/Numerics/NeuralNetworks \
-					<InsightToolkit 3.20 source dir>/Code/SpatialObject \
-					<InsightToolkit 3.20 source dir>/Code/Numerics/Statistics \
-					<InsightToolkit 3.20 source dir>/Utilities/MetaIO \
-					<InsightToolkit 3.20 source dir>/Utilities/NrrdIO \
-					<InsightToolkit 3.20 source dir>/Utilities/DICOMParser \
-					<InsightToolkit 3.20 source dir>/Utilities/nifti/niftilib \
-					<InsightToolkit 3.20 source dir>/Utilities/nifti/znzlib \
-					<InsightToolkit 3.20 source dir>/Utilities/itkExtHdrs \
-					<InsightToolkit 3.20 source dir>/Utilities \
-					<InsightToolkit 3.20 source dir>/Utilities/vxl/v3p/netlib \
-					<InsightToolkit 3.20 source dir>/Utilities/vxl/vcl \
-					<InsightToolkit 3.20 source dir>/Utilities/vxl/core \
-					<InsightToolkit 3.20 source dir>/build/Utilities/NrrdIO \
-					<InsightToolkit 3.20 source dir>/build/Utilities/DICOMParser \
-					<InsightToolkit 3.20 source dir>/build/Utilities/expat \
-					<InsightToolkit 3.20 source dir>/build/Utilities \
-					<InsightToolkit 3.20 source dir>/build/Utilities/vxl/vcl \
-					<InsightToolkit 3.20 source dir>/build/Utilities/vxl/core \
-					<InsightToolkit 3.20 source dir>/build/Utilities/gdcm
-
-	2.6) Собрать ChequeRecognizer: 
-		qmake cheque_recognizer.pro
-		mingw32-make
+2.1) Установить Qt SDK (http://qt-project.org/downloads)
+2.2) Скачать и собрать Tesseract-OCR (http://code.google.com/p/tesseract-ocr/), Leptonica (http://code.google.com/p/leptonica/) и их зависимости (zlib, libpng, libjpeg, libtiff). Интрукция: http://www.sk-spell.sk.cx/compiling-leptonica-and-tesseract-ocr-with-mingwmsys
+2.3) Скачать и собрать Insight Toolkit 3.20 ( http://www.itk.org/ITK/resources/software.html)
+2.4) Скачать и собрать Qwt (http://qwt.sourceforge.net)
+2.5) Заголовки и библиотеки должны находиться в <MinGW Path>/include, <MinGW Path>/lib and <MinGW Path>/bin. В противном случае необходимо поменять INCLUDEPATH и LIBS в pro-файле.
+2.6) Собрать ChequeRecognizer: 
+	qmake cheque_recognizer.pro
+	mingw32-make
 		
 Linux
 1. qmake
