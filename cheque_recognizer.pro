@@ -6,7 +6,7 @@
 
 QT       += core gui sql
 
-TARGET = cheque_recognizer_test
+TARGET = ChequeRecognizer
 TEMPLATE = app
 
 
@@ -45,12 +45,10 @@ INCLUDEPATH += C:/libs/qwt-6.0.1/include \
                 D:/libs/InsightToolkit-3.20.1/Utilities/vxl/v3p/netlib \
                 D:/libs/InsightToolkit-3.20.1/Utilities/vxl/vcl \
                 D:/libs/InsightToolkit-3.20.1/Utilities/vxl/core \
-                D:/libs/InsightToolkit-3.20.1/Utilities/gdcm/src \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/NrrdIO \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/DICOMParser \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/expat \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities \
-                D:/libs/InsightToolkit-3.20.1/build/Utilities/vxl/v3p/netlib \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/vxl/vcl \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/vxl/core \
                 D:/libs/InsightToolkit-3.20.1/build/Utilities/gdcm
