@@ -12,6 +12,8 @@
 
 #ifdef __WIN32
 #include "recognizer_win.h"
+#else
+#include "recognizer.h"
 #endif
 
 class ExtTreeView : public QTreeView {
