@@ -72,5 +72,5 @@ void StatWindow::showStats() {
     StatRender::Type t = (StatRender::Type)cbType->itemData(cbType->currentIndex()).toInt();
     StatRender::Div d = (StatRender::Div)cbDiv->itemData(cbDiv->currentIndex()).toInt();
 
-    sr->drawStats(deBeg->dateTime(), deEnd->dateTime(), t, d);
+    sr->drawStats(deBeg->dateTime(), deEnd->dateTime().addDays(1), t, d);
 }

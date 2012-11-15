@@ -60,8 +60,7 @@ Cheque ChequeRecognizer::recognizeFile(const QString &fileName, bool *ok) {
 
     QList<int> bs;
     QRegExp rxd("\\d{1,2}[\\./]\\d{1,2}[\\./]\\d{1,2}");
-    QRegExp rx("([\\doOÓŒ]+)\\s*[,Ç:\\.]\\s*([\\doOÓŒ]+)");
-    //QRegExp rx1("(\\d+)([\\doOÓŒ]+)");
+    QRegExp rx("([\\doOÓŒ¯Â]+)\\s*[,Ç:\\.]\\s*([\\doOÓŒ¯Â‘Ÿ]+)");
     QRegExp rxs("([\\dÁ]+\\.|:)");
     bool found = false, dateFound = false, exit = false;
     for(int i=0; i<cdata.size(); i++) {
@@ -76,11 +75,10 @@ Cheque ChequeRecognizer::recognizeFile(const QString &fileName, bool *ok) {
         QList<double> nums;
         while(true) {
             pos = rx.indexIn(cdata[i], pos);
-            //pos1 = rx1.indexIn(cdata[i], pos);
             if(pos != -1) {
                 QString str = rx.cap(0);
-                QString n1 = rx.cap(1).replace(QRegExp("[oOÓŒ]"), "0");
-                QString n2 = rx.cap(2).replace(QRegExp("[oOÓŒ]"), "0");
+                QString n1 = rx.cap(1).replace(QRegExp("[oOÓŒ¯Â‘Ÿ]"), "0");
+                QString n2 = rx.cap(2).replace(QRegExp("[oOÓŒ¯Â‘Ÿ]"), "0");
                 nums.append(QString("%1.%2").arg(n1.toInt()).arg(n2.toInt()).toDouble());
                 pos += str.size();
                 found = true;
@@ -95,8 +93,8 @@ Cheque ChequeRecognizer::recognizeFile(const QString &fileName, bool *ok) {
                         resStr.prepend(cdata[j].trimmed());
                     }
                 }
-                resStr.replace(QRegExp("[\n|_:\\d]"), "");
-                resStr = resStr.toLower();
+                resStr.replace(QRegExp("[\n|\\._:\\d]"), "");
+                resStr = resStr.trimmed().toLower();
                 resStr[0] = resStr[0].toUpper();
                 if(resStr.contains("ÔÓÍÛÔÓÍ", Qt::CaseInsensitive) || resStr.contains("ÓÔÎ‡Ú‡", Qt::CaseInsensitive)) {
                     exit = true;
@@ -114,7 +112,9 @@ Cheque ChequeRecognizer::recognizeFile(const QString &fileName, bool *ok) {
                     if(spi == -1) break;
                     npos = spi+1;
                 }
-                if(adeq) {
+                if(adeq && !resStr.contains('\\')) {
+                    int sind = resStr.indexOf(QRegExp("[\\(\\)]"));
+                    if(sind != -1) resStr = resStr.left(sind);
                     resStr.replace("‰", "‡");
                     ch.goods.append(Good(resStr, nums.last()));
                 }
@@ -164,7 +164,6 @@ int ChequeRecognizer::prepareData(const QString &fileName) {
     for(int i=0; i<yProj.size(); i++) mean += yProj[i];
     mean /= yProj.size()*3.0;
 
-    //QList<QPair<int, int> > ranges;
     QList<int> ranges;
     bool wasMax = true, skipFirst = false;
     int rStart = 0;
@@ -172,13 +171,11 @@ int ChequeRecognizer::prepareData(const QString &fileName) {
         if(yProj[i] < mean && wasMax) {
             rStart = i; wasMax = false;
         } else if(yProj[i] > mean && !wasMax) {
-            //ranges.append(QPair<int, int>(rStart, i-1));
             ranges.append( (i-1+rStart) / 2);
             if(rStart == 0) skipFirst = true;
             wasMax = true;
         }
     }
-    //if(!wasMax) ranges.append(QPair<int, int>(rStart, yProj.size()-1));
     if(!wasMax) ranges.append( (yProj.size()-1+rStart) / 2);
 
     int sourceWidth = itkCImage->GetLargestPossibleRegion().GetSize()[0];
